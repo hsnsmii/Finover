@@ -1,0 +1,63 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: finover-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: finover
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d finover']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  backend:
+    image: node:18-alpine
+    container_name: finover-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    working_dir: /app/backend
+    command: >
+      sh -c "npm install &&
+             npm run prisma:generate &&
+             npx prisma migrate deploy &&
+             npm run dev"
+    environment:
+      NODE_ENV: development
+      PORT: 8080
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/finover
+      JWT_ACCESS_SECRET: change-me-access
+      JWT_REFRESH_SECRET: change-me-refresh
+      JWT_ISS: finover
+      JWT_AUD: finover-mobile
+      ACCESS_TTL: 15m
+      REFRESH_TTL: 7d
+      LOG_LEVEL: debug
+      CORS_ORIGIN: http://localhost:19006
+      PASSWORD_HASH_MEMORY_COST: '65536'
+      PASSWORD_HASH_TIME_COST: '3'
+      PASSWORD_HASH_PARALLELISM: '1'
+      BCRYPT_ROUNDS: '12'
+      LOGIN_DELAY_MS: '200'
+      CLOCK_TOLERANCE_SECONDS: '5'
+      TRUST_PROXY: '1'
+      SENTRY_DSN: ''
+    ports:
+      - '8080:8080'
+    volumes:
+      - .:/app/backend
+      - backend-node-modules:/app/backend/node_modules
+
+volumes:
+  db-data:
+  backend-node-modules:

@@ -1,0 +1,155 @@
+import { StyleSheet } from 'react-native';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FA', 
+  },
+  titleContainer: {
+    marginBottom: 24,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1F2937', 
+    marginBottom: 4,
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280', 
+    textAlign: 'center',
+    padding: 20,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF', 
+    borderRadius: 28,
+    paddingHorizontal: 15,
+    marginBottom: 24,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 3,
+    height: 56,
+    borderWidth: 1,
+    borderColor: '#E5E7EB', 
+  },
+  searchInput: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+    color: '#1F2937', 
+  },
+  searchIcon: {
+    color: '#1A237E', 
+    marginRight: 5,
+  },
+  categoryChip: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginRight: 10,
+    backgroundColor: '#F8F9FA', 
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  categoryChipActive: {
+    backgroundColor: '#1A237E', 
+  },
+  categoryText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#6B7280', 
+  },
+  categoryTextActive: {
+    color: '#FFFFFF', 
+    fontWeight: '600',
+  },
+  questionsContainer: {
+    flex: 1,
+  },
+  questionContainer: {
+    backgroundColor: '#FFFFFF', 
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E5E7EB', 
+  },
+  questionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 18,
+  },
+  questionText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1F2937', 
+    flex: 1,
+    marginRight: 12,
+    lineHeight: 24,
+  },
+  questionIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#E5E7EB', 
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  answerContainer: {
+    padding: 18,
+    paddingTop: 0,
+    backgroundColor: '#F8F9FA', 
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB', 
+  },
+  answerText: {
+    fontSize: 16,
+    color: '#1F2937', 
+    lineHeight: 24,
+  },
+  noResultsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  noResultsText: {
+    fontSize: 18,
+    color: '#6B7280', 
+    textAlign: 'center',
+  },
+  noResultsIcon: {
+    marginBottom: 16,
+    color: '#E5E7EB', 
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
+    marginTop: 70,
+  },
+  titleWrapper: {
+    alignItems: 'center',
+  },
+});
+
+export default styles;
