@@ -17,7 +17,7 @@ export const initSentry = () => {
     dsn: SENTRY_DSN,
     environment: SENTRY_ENVIRONMENT,
     release,
-    dist: SENTRY_DIST || Constants.expoConfig?.runtimeVersion ?? 'local',
+    dist: (SENTRY_DIST || Constants.expoConfig?.runtimeVersion) ?? 'local',
     tracesSampleRate: __DEV__ ? 1.0 : 0.2,
     enableNative: true,
     enableNativeCrashHandling: true

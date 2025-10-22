@@ -84,17 +84,16 @@ const AppStack = () => {
 
 const RootNavigator = () => {
   const { bootstrapping, user } = useAuth();
-
-  if (bootstrapping) {
-    return <SplashScreen />;
-  }
+  if (bootstrapping) return <SplashScreen />;
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {user ? <AppStack /> : <AuthStack />}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {user ? (
+        <Stack.Screen name="Main" component={AppTabs} />
+      ) : (
+        <Stack.Screen name="Auth" component={AuthStack} />
+      )}
+    </Stack.Navigator>
   );
 };
 
