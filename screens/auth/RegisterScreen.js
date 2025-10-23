@@ -76,6 +76,12 @@ export default function RegisterScreen({ navigation }) {
       await register(email.trim(), password);
       navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
     } catch (error) {
+      console.error('[RegisterScreen] Registration failed', {
+        name: error?.name,
+        message: error?.message,
+        status: error?.status,
+        data: error instanceof ApiError ? error?.data : undefined,
+      });
       if (error instanceof ApiError) {
         Alert.alert(t('Hata'), error?.data?.message || t('Kayıt işlemi başarısız oldu.'));
       } else {
