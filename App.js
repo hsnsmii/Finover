@@ -26,7 +26,9 @@ import MainTabs from './screens/TabBar';
 
 initSentry();
 
-const Stack = createStackNavigator();
+const RootStack = createStackNavigator();
+const AuthStack = createStackNavigator();
+const AppStack = createStackNavigator();
 
 const SplashScreen = () => (
   <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc' }}>
@@ -34,51 +36,55 @@ const SplashScreen = () => (
   </View>
 );
 
-const AuthStack = () => (
-  <>
-    <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-  </>
+const AuthStackScreen = () => (
+  <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+    <AuthStack.Screen name="Login" component={LoginScreen} />
+    <AuthStack.Screen name="Register" component={RegisterScreen} />
+  </AuthStack.Navigator>
 );
 
-const AppStack = () => {
+const AppStackScreen = () => {
   const { t } = useLocalization();
 
   return (
-    <>
-      <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
-      <Stack.Screen
+    <AppStack.Navigator screenOptions={{ headerShown: false }}>
+      <AppStack.Screen name="MainTabs" component={MainTabs} />
+      <AppStack.Screen
         name="StockDetail"
         component={StockDetailScreen}
         options={{ title: 'Hisse Detayı', headerShown: true }}
       />
-      <Stack.Screen
+      <AppStack.Screen
         name="WatchlistDetail"
         component={WatchlistDetailScreen}
         options={{ title: '', headerShown: true }}
       />
-      <Stack.Screen name="PortfolioDetail" component={PortfolioDetailScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="AddPosition" component={AddPositionScreen} options={{ headerShown: false }} />
-      <Stack.Screen
+      <AppStack.Screen name="PortfolioDetail" component={PortfolioDetailScreen} />
+      <AppStack.Screen name="AddPosition" component={AddPositionScreen} />
+      <AppStack.Screen
         name="AccountInfo"
         component={AccountInfoScreen}
         options={{ title: t('Account Information'), headerShown: true }}
       />
-      <Stack.Screen
+      <AppStack.Screen
         name="ChangePassword"
         component={ChangePasswordScreen}
         options={{ title: t('Change Password'), headerShown: true }}
       />
-      <Stack.Screen name="PortfolioRisk" component={PortfolioRiskScreen} options={{ headerShown: false }} />
-      <Stack.Screen
+      <AppStack.Screen name="PortfolioRisk" component={PortfolioRiskScreen} />
+      <AppStack.Screen
         name="Glossary"
         component={GlossaryScreen}
         options={{ title: 'Yatırımcı Sözlüğü', headerBackVisible: false, headerShown: false }}
       />
-      <Stack.Screen name="Menu" component={MenuScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="About" component={AboutScreen} options={{ title: t('About'), headerShown: false }} />
-      <Stack.Screen name="FAQ" component={FAQScreen} options={{ title: ' ', headerLeft: () => null, headerShown: false }} />
-    </>
+      <AppStack.Screen name="Menu" component={MenuScreen} />
+      <AppStack.Screen name="About" component={AboutScreen} options={{ title: t('About'), headerShown: false }} />
+      <AppStack.Screen
+        name="FAQ"
+        component={FAQScreen}
+        options={{ title: ' ', headerLeft: () => null, headerShown: false }}
+      />
+    </AppStack.Navigator>
   );
 };
 
@@ -87,13 +93,15 @@ const RootNavigator = () => {
   if (bootstrapping) return <SplashScreen />;
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {user ? (
-        <Stack.Screen name="Main" component={AppTabs} />
-      ) : (
-        <Stack.Screen name="Auth" component={AuthStack} />
-      )}
-    </Stack.Navigator>
+    <NavigationContainer>
+      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        {user ? (
+          <RootStack.Screen name="App" component={AppStackScreen} />
+        ) : (
+          <RootStack.Screen name="Auth" component={AuthStackScreen} />
+        )}
+      </RootStack.Navigator>
+    </NavigationContainer>
   );
 };
 
