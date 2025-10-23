@@ -73,6 +73,12 @@ export default function LoginScreen({ navigation, route }) {
         routes: [{ name: 'Main' }],
       });
     } catch (error) {
+      console.error('[LoginScreen] Login failed', {
+        name: error?.name,
+        message: error?.message,
+        status: error?.status,
+        data: error instanceof ApiError ? error?.data : undefined,
+      });
       if (error instanceof ApiError) {
         const message = error?.data?.code === 'AUTHENTICATION_ERROR' ? t('E-postanızı veya şifrenizi kontrol edin') : error?.data?.message;
         setErrorMessage(message || t('Giriş yapılamadı'));
