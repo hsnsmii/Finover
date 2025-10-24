@@ -1,10 +1,23 @@
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { config as loadEnv } from 'dotenv';
 import ms from 'ms';
 import { z } from 'zod';
 
-const envFilePath = path.resolve(process.cwd(), '.env');
-loadEnv({ path: envFilePath });
+const candidateEnvPaths = [
+  path.resolve(__dirname, '../../../.env'),
+  path.resolve(process.cwd(), '..', '.env'),
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(__dirname, '../../.env')
+];
+
+const envFilePath = candidateEnvPaths.find((filePath) => existsSync(filePath));
+
+if (envFilePath) {
+  loadEnv({ path: envFilePath });
+} else {
+  loadEnv();
+}
 
 const allowedLogLevels = ['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly'] as const;
 
@@ -37,7 +50,29 @@ const envSchema = z.object({
   TRUST_PROXY: z.string().default('1')
 });
 
-const parsed = envSchema.safeParse(process.env);
+const parseDurationToMs = (value: string, label: string): number => {
+  const result = ms(value as Parameters<typeof ms>[0]);
+
+  if (typeof result !== 'number') {
+    throw new Error(`${label} must be a valid duration string`);
+  }
+
+  return result;
+};
+
+const envSource: Record<string, string | undefined> = {
+  ...process.env
+};
+
+if (!envSource.ACCESS_TTL && envSource.ACCESS_TOKEN_EXPIRES) {
+  envSource.ACCESS_TTL = envSource.ACCESS_TOKEN_EXPIRES;
+}
+
+if (!envSource.REFRESH_TTL && envSource.REFRESH_TOKEN_EXPIRES) {
+  envSource.REFRESH_TTL = envSource.REFRESH_TOKEN_EXPIRES;
+}
+
+const parsed = envSchema.safeParse(envSource);
 
 if (!parsed.success) {
   const formatted = parsed.error.errors.map((err) => `${err.path.join('.')}: ${err.message}`).join(', ');
@@ -48,8 +83,8 @@ const raw = parsed.data;
 
 export const env = {
   ...raw,
-  ACCESS_TTL_MS: ms(raw.ACCESS_TTL),
-  REFRESH_TTL_MS: ms(raw.REFRESH_TTL),
+  ACCESS_TTL_MS: parseDurationToMs(raw.ACCESS_TTL, 'ACCESS_TTL'),
+  REFRESH_TTL_MS: parseDurationToMs(raw.REFRESH_TTL, 'REFRESH_TTL'),
   isProduction: raw.NODE_ENV === 'production',
   isDevelopment: raw.NODE_ENV === 'development',
   isTest: raw.NODE_ENV === 'test'

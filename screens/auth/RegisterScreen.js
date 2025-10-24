@@ -74,7 +74,18 @@ export default function RegisterScreen({ navigation }) {
 
     try {
       await register(email.trim(), password);
-      navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+      const rootNavigator = navigation.getParent();
+      if (rootNavigator) {
+        rootNavigator.reset({
+          index: 0,
+          routes: [{ name: 'App' }]
+        });
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainTabs' }]
+        });
+      }
     } catch (error) {
       console.error('[RegisterScreen] Registration failed', {
         name: error?.name,

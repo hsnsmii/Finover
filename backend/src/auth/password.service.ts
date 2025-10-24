@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import argon2 from 'argon2';
 import bcrypt from 'bcryptjs';
 import { env } from '../config/env';
@@ -7,7 +8,7 @@ export type HashAlgorithm = 'argon2id' | 'bcrypt';
 
 export interface HashMetadata {
   algorithm: HashAlgorithm;
-  params: Record<string, unknown>;
+  params: Prisma.JsonObject;
 }
 
 export interface HashResult extends HashMetadata {

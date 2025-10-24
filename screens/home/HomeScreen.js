@@ -23,7 +23,7 @@ import { Ionicons, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-ico
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from '@react-navigation/native';
 import { useLocalization } from '../../services/LocalizationContext';
-import { API_BASE_URL } from '../../services/config';
+import { API_BASE_URL, FMP_API_KEY } from '../../services/config';
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -59,6 +59,36 @@ const formatTimeAgo = (dateString) => {
     if (interval > 1) return Math.floor(interval) + " dk. önce";
     return Math.floor(seconds) + " sn. önce";
 };
+
+const fallbackMarketData = [
+  { symbol: 'XU100.IS', name: 'Borsa Istanbul 100', price: 9500.12, changes: 18.34, changesPercentage: 0.19 },
+  { symbol: '^NDX', name: 'NASDAQ 100', price: 19345.27, changes: -42.61, changesPercentage: -0.22 }
+];
+
+const fallbackPopularStocks = [
+  { symbol: 'ASELS.IS', name: 'Aselsan', price: 145.3, changesPercentage: 4.12 },
+  { symbol: 'THYAO.IS', name: 'Türk Hava Yolları', price: 365.9, changesPercentage: 3.27 },
+  { symbol: 'BIMAS.IS', name: 'BİM', price: 272.4, changesPercentage: 2.86 }
+];
+
+const fallbackNews = [
+  {
+    id: 'news-fallback-1',
+    title: 'Piyasalar haftaya pozitif başladı',
+    text: 'Küresel piyasalarda risk iştahı artarken Borsa İstanbul güne yükselişle başladı.',
+    publishedDate: new Date().toISOString(),
+    imageUrl: borsaImageUrls[0],
+    site: 'FinOver'
+  },
+  {
+    id: 'news-fallback-2',
+    title: 'Teknoloji hisselerinde yükseliş trendi',
+    text: 'ABD teknoloji hisseleri çip sektöründeki toparlanmanın etkisiyle prim yapıyor.',
+    publishedDate: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+    imageUrl: borsaImageUrls[1],
+    site: 'FinOver'
+  }
+];
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -151,30 +181,46 @@ const HomeScreen = () => {
 
   const fetchMarketData = async () => {
     try {
-      const res = await axios.get('https://financialmodelingprep.com/api/v3/quote/XU100.IS,^NDX?apikey=obHajA78aHmRpFpviomn8XALGDAoonj3');
+      const res = await axios.get('https://financialmodelingprep.com/api/v3/quote/XU100.IS,^NDX', {
+        params: { apikey: FMP_API_KEY }
+      });
       setMarketData(res.data || []);
     } catch (err) {
-      console.error("Piyasa verisi çekme hatası", err);
-      setMarketData([]);
+      console.error('Piyasa verisi çekme hatası', err);
+      if (err?.response?.status === 401) {
+        console.warn('FMP API key yetkisiz. Örnek veriler gösteriliyor.');
+        setMarketData(fallbackMarketData);
+      } else {
+        setMarketData([]);
+      }
     }
   };
 
   const fetchPopularStocks = async () => {
     try {
-      const res = await axios.get('https://financialmodelingprep.com/api/v3/quotes/ist?apikey=obHajA78aHmRpFpviomn8XALGDAoonj3');
+      const res = await axios.get('https://financialmodelingprep.com/api/v3/quotes/ist', {
+        params: { apikey: FMP_API_KEY }
+      });
       const sorted = res.data
         .sort((a, b) => b.changesPercentage - a.changesPercentage)
         .slice(0, 10);
       setPopularStocks(sorted);
     } catch (err) {
-      console.error("Popüler hisse çekme hatası", err);
-      setPopularStocks([]);
+      console.error('Popüler hisse çekme hatası', err);
+      if (err?.response?.status === 401) {
+        console.warn('FMP API key yetkisiz. Örnek popüler hisseler gösteriliyor.');
+        setPopularStocks(fallbackPopularStocks);
+      } else {
+        setPopularStocks([]);
+      }
     }
   };
 
   const fetchNews = async () => {
     try {
-      const res = await axios.get('https://financialmodelingprep.com/api/v3/stock_news?limit=5&apikey=obHajA78aHmRpFpviomn8XALGDAoonj3');
+      const res = await axios.get('https://financialmodelingprep.com/api/v3/stock_news', {
+        params: { limit: 5, apikey: FMP_API_KEY }
+      });
       const newsWithImages = res.data.map((item, index) => ({
         ...item,
         id: `news-${index}`, 
@@ -182,7 +228,11 @@ const HomeScreen = () => {
       }));
       setNews(newsWithImages);
     } catch (err) {
-      console.error("Haber çekme hatası", err);
+      console.error('Haber çekme hatası', err);
+      if (err?.response?.status === 401) {
+        console.warn('FMP API key yetkisiz. Örnek haberler gösteriliyor.');
+        setNews(fallbackNews);
+      }
     }
   };
 

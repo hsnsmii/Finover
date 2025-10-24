@@ -17,6 +17,7 @@ model User {
   updatedAt          DateTime       @updatedAt @map("updated_at")
 
   refreshTokens      RefreshToken[]
+  watchlists         Watchlist[]
 
   @@map("users")
 }
@@ -36,4 +37,35 @@ model RefreshToken {
   @@index([userId])
   @@index([userId, revokedAt])
   @@map("refresh_tokens")
+}
+
+model Watchlist {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  name      String
+  type      String?  @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries WatchlistEntry[]
+
+  @@index([userId, type])
+  @@map("watchlists")
+}
+
+model WatchlistEntry {
+  id          String   @id @default(uuid())
+  watchlistId String   @map("watchlist_id")
+  symbol      String
+  quantity    Decimal? @db.Decimal(18, 4)
+  price       Decimal? @db.Decimal(18, 4)
+  note        String?  @db.Text
+  tradeDate   DateTime? @map("trade_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  watchlist Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+
+  @@index([watchlistId])
+  @@map("watchlist_entries")
 }

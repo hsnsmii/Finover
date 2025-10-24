@@ -19,10 +19,12 @@ import { useLocalization } from '../../services/LocalizationContext';
 import { useAuth } from '../../services/auth/AuthContext';
 import { ApiError } from '../../services/api/client';
 import { captureWithContext } from '../../services/sentry';
+import { API_BASE_URL } from '../../services/config';
 
 const LOGO = require('../../assets/Ekran Resmi 2025.png');
 
 export default function LoginScreen({ navigation, route }) {
+  console.log('API_BASE_URL =', API_BASE_URL); 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -68,10 +70,18 @@ export default function LoginScreen({ navigation, route }) {
     Keyboard.dismiss(); 
     try {
       await login(email.trim(), password);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Main' }],
-      });
+      const rootNavigator = navigation.getParent();
+      if (rootNavigator) {
+        rootNavigator.reset({
+          index: 0,
+          routes: [{ name: 'App' }]
+        });
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainTabs' }]
+        });
+      }
     } catch (error) {
       console.error('[LoginScreen] Login failed', {
         name: error?.name,

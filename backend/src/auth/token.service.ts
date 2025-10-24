@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
 import { nanoid } from 'nanoid';
 import type { RefreshToken } from '@prisma/client';
 import { prisma } from '../db/client';
@@ -51,15 +51,16 @@ const buildRefreshPayload = (userId: string): RefreshTokenPayload => ({
 
 export const generateAccessToken = (userId: string, roles?: string[]) => {
   const payload = buildAccessPayload(userId, roles);
+  const options: SignOptions = {
+    issuer: env.JWT_ISS,
+    audience: env.JWT_AUD,
+    expiresIn: env.ACCESS_TTL as SignOptions['expiresIn'],
+    jwtid: payload.jti
+  };
   const token = jwt.sign(
     { sub: payload.sub, type: payload.type, roles: payload.roles },
     env.JWT_ACCESS_SECRET,
-    {
-      issuer: env.JWT_ISS,
-      audience: env.JWT_AUD,
-      expiresIn: env.ACCESS_TTL,
-      jwtid: payload.jti
-    }
+    options
   );
 
   return {
@@ -74,15 +75,16 @@ export const generateAccessToken = (userId: string, roles?: string[]) => {
 
 export const generateRefreshToken = (userId: string) => {
   const payload = buildRefreshPayload(userId);
+  const options: SignOptions = {
+    issuer: env.JWT_ISS,
+    audience: env.JWT_AUD,
+    expiresIn: env.REFRESH_TTL as SignOptions['expiresIn'],
+    jwtid: payload.jti
+  };
   const token = jwt.sign(
     { sub: payload.sub, type: payload.type },
     env.JWT_REFRESH_SECRET,
-    {
-      issuer: env.JWT_ISS,
-      audience: env.JWT_AUD,
-      expiresIn: env.REFRESH_TTL,
-      jwtid: payload.jti
-    }
+    options
   );
 
   return {

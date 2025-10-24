@@ -8,7 +8,10 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters')
 });
 
-const loginSchema = registerSchema;
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1, 'Password is required')
+});
 
 const refreshSchema = z.object({
   refreshToken: z.string().min(10, 'Refresh token is required')
