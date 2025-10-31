@@ -13,12 +13,11 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import axios from 'axios';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { getSelectedStocks, getPriceOnDate } from '../../services/fmpApi';
-import { API_BASE_URL } from '../../services/config';
+import { apiJson } from '../../services/http';
 
 const AddPositionScreen = () => {
   const route = useRoute();
@@ -65,8 +64,8 @@ const AddPositionScreen = () => {
     const fetchExisting = async () => {
       if (isEdit && listId && editSymbol) {
         try {
-          const res = await axios.get(`${API_BASE_URL}/api/watchlists/${listId}/stocks`);
-          const match = res.data.find((s) => s.symbol === editSymbol);
+          const stocksInList = await apiJson(`/api/watchlists/${listId}/stocks`);
+          const match = stocksInList.find((s) => s.symbol === editSymbol);
           if (match) {
             setSymbol(match.symbol);
             setQuantity(String(match.quantity));
@@ -100,12 +99,15 @@ const AddPositionScreen = () => {
       return;
     }
     try {
-      await axios.post(`${API_BASE_URL}/api/watchlists/${listId}/stocks`, {
-        symbol: symbol.toUpperCase(),
-        quantity: parseFloat(quantity),
-        price: parseFloat(price),
-        note,
-        date: date.toISOString().split('T')[0],
+      await apiJson(`/api/watchlists/${listId}/stocks`, {
+        method: 'POST',
+        body: {
+          symbol: symbol.toUpperCase(),
+          quantity: parseFloat(quantity),
+          price: parseFloat(price),
+          note,
+          date: date.toISOString().split('T')[0],
+        },
       });
       Alert.alert('Başarılı', isEdit ? 'Pozisyon güncellendi.' : 'Pozisyon kaydedildi.');
       navigation.goBack();

@@ -18,12 +18,11 @@ import {
   Platform,
 } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import { Ionicons, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from '@react-navigation/native';
 import { useLocalization } from '../../services/LocalizationContext';
-import { API_BASE_URL, FMP_API_KEY } from '../../services/config';
+import { api, apiJson } from '../../services/http';
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -131,8 +130,8 @@ const HomeScreen = () => {
         console.warn('Kullanıcı ID bulunamadı.');
         return;
       }
-      const res = await axios.get(`${API_BASE_URL}/api/watchlists/${userId}?type=watchlist`);
-      setWatchlists(res.data);
+      const res = await apiJson(`/api/watchlists/${userId}?type=watchlist`);
+      setWatchlists(res);
     } catch (err) {
       console.error('Takip listesi çekme hatası', err);
     }
@@ -145,12 +144,15 @@ const HomeScreen = () => {
     }
     try {
       const userId = await AsyncStorage.getItem('userId');
-      const res = await axios.post(`${API_BASE_URL}/api/watchlists`, {
-        name: newListName.trim(),
-        user_id: userId,
-        type: 'watchlist',
+      const res = await apiJson('/api/watchlists', {
+        method: 'POST',
+        body: {
+          name: newListName.trim(),
+          user_id: userId,
+          type: 'watchlist',
+        },
       });
-      setWatchlists(prev => [...prev, res.data]);
+      setWatchlists(prev => [...prev, res]);
       setNewListName('');
       setCreateModalVisible(false);
     } catch (err) {
@@ -162,7 +164,13 @@ const HomeScreen = () => {
   const deleteWatchlist = async (listId) => {
 
     try {
-      await axios.delete(`${API_BASE_URL}/api/watchlists/${listId}`);
+      const response = await api(`/api/watchlists/${listId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || 'Liste silinemedi');
+      }
       setWatchlists(current => current.filter(l => l.id !== listId));
     } catch (err) {
       console.error('Liste silinemedi', err);
@@ -181,47 +189,45 @@ const HomeScreen = () => {
 
   const fetchMarketData = async () => {
     try {
-      const res = await axios.get('https://financialmodelingprep.com/api/v3/quote/XU100.IS,^NDX', {
-        params: { apikey: FMP_API_KEY }
-      });
-      setMarketData(res.data || []);
+      const res = await apiJson(`/api/v3/quote?symbols=${encodeURIComponent('XU100.IS,^NDX')}`);
+      setMarketData(res || []);
     } catch (err) {
       console.error('Piyasa verisi çekme hatası', err);
-      if (err?.response?.status === 401) {
-        console.warn('FMP API key yetkisiz. Örnek veriler gösteriliyor.');
-        setMarketData(fallbackMarketData);
-      } else {
-        setMarketData([]);
-      }
+      console.warn('Yahoo/Stooq provider kullanılıyor. Ücretsiz veri kaynağı (non-commercial).');
+      setMarketData(fallbackMarketData);
     }
   };
 
   const fetchPopularStocks = async () => {
     try {
-      const res = await axios.get('https://financialmodelingprep.com/api/v3/quotes/ist', {
-        params: { apikey: FMP_API_KEY }
-      });
-      const sorted = res.data
-        .sort((a, b) => b.changesPercentage - a.changesPercentage)
+      const bistSymbols = [
+        'ASELS.IS',
+        'THYAO.IS',
+        'BIMAS.IS',
+        'SISE.IS',
+        'TUPRS.IS',
+        'EREGL.IS',
+        'GARAN.IS',
+        'YKBNK.IS',
+        'AKBNK.IS',
+        'ISCTR.IS'
+      ];
+      const res = await apiJson(`/api/v3/quote?symbols=${encodeURIComponent(bistSymbols.join(','))}`);
+      const sorted = (res || [])
+        .sort((a, b) => (b.changesPercentage ?? 0) - (a.changesPercentage ?? 0))
         .slice(0, 10);
       setPopularStocks(sorted);
     } catch (err) {
       console.error('Popüler hisse çekme hatası', err);
-      if (err?.response?.status === 401) {
-        console.warn('FMP API key yetkisiz. Örnek popüler hisseler gösteriliyor.');
-        setPopularStocks(fallbackPopularStocks);
-      } else {
-        setPopularStocks([]);
-      }
+      console.warn('Yahoo/Stooq provider kullanılıyor. Ücretsiz veri kaynağı (non-commercial).');
+      setPopularStocks(fallbackPopularStocks);
     }
   };
 
   const fetchNews = async () => {
     try {
-      const res = await axios.get('https://financialmodelingprep.com/api/v3/stock_news', {
-        params: { limit: 5, apikey: FMP_API_KEY }
-      });
-      const newsWithImages = res.data.map((item, index) => ({
+      const res = await apiJson('/api/v3/stock_news?limit=5');
+      const newsWithImages = (res || []).map((item, index) => ({
         ...item,
         id: `news-${index}`, 
         imageUrl: borsaImageUrls[index % borsaImageUrls.length], 
@@ -229,10 +235,8 @@ const HomeScreen = () => {
       setNews(newsWithImages);
     } catch (err) {
       console.error('Haber çekme hatası', err);
-      if (err?.response?.status === 401) {
-        console.warn('FMP API key yetkisiz. Örnek haberler gösteriliyor.');
-        setNews(fallbackNews);
-      }
+      console.warn('Yahoo/Stooq provider kullanılıyor. Ücretsiz veri kaynağı (non-commercial).');
+      setNews(fallbackNews);
     }
   };
 

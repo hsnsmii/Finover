@@ -13,6 +13,7 @@ import { httpLogger } from './middleware/httpLogger.middleware';
 import { globalRateLimiter } from './middleware/rateLimit.middleware';
 import { requestIdMiddleware } from './middleware/requestId.middleware';
 import { watchlistsRouter } from './routes/watchlists.routes';
+import { fmpCompatRouter } from './routes/fmp-compat.routes';
 import { stocksRouter } from './routes/stocks.routes';
 
 const app = express();
@@ -69,6 +70,7 @@ app.get('/health', (_req, res) => {
 app.use('/auth', authRouter);
 app.use('/api/watchlists', watchlistsRouter);
 app.use('/api/stocks', stocksRouter);
+app.use('/api', fmpCompatRouter);
 
 app.get('/me', requireAuth, meHandler);
 

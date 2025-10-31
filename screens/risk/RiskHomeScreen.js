@@ -3,7 +3,7 @@ import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, StyleSheet, 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { API_BASE_URL } from '../../services/config';
+import { apiJson } from '../../services/http';
 
 const COLORS = {
   background: '#F4F6F8',
@@ -25,8 +25,7 @@ const RiskHomeScreen = () => {
     try {
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) return;
-      const res = await fetch(`${API_BASE_URL}/api/watchlists/${userId}?type=risk`);
-      const data = await res.json();
+      const data = await apiJson(`/api/watchlists/${userId}?type=risk`);
       setLists(data);
     } catch (err) {
       console.error('Risk listeleri çekilemedi', err);
@@ -43,12 +42,10 @@ const RiskHomeScreen = () => {
     if (!newPortfolioName.trim()) return;
     try {
       const userId = await AsyncStorage.getItem('userId');
-      const res = await fetch(`${API_BASE_URL}/api/watchlists`, {
+      const json = await apiJson('/api/watchlists', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newPortfolioName.trim(), user_id: userId, type: 'risk' }),
+        body: { name: newPortfolioName.trim(), user_id: userId, type: 'risk' }
       });
-      const json = await res.json();
       setNewPortfolioName('');
       setModalVisible(false);
       await fetchLists();

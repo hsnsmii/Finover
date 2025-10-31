@@ -13,11 +13,10 @@ import {
   Button,
   ActivityIndicator, 
 } from 'react-native';
-import axios from 'axios';
 import { Swipeable } from 'react-native-gesture-handler';
 import { MaterialIcons } from '@expo/vector-icons';
-import { API_BASE_URL } from '../../services/config';
 import { getQuotes } from '../../services/fmpApi';
+import { api, apiJson } from '../../services/http';
 
 const WatchlistDetailScreen = ({ route }) => {
 
@@ -31,8 +30,7 @@ const WatchlistDetailScreen = ({ route }) => {
 
   const fetchWatchlistStocks = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/watchlists/${listId}/stocks`);
-      const baseData = res.data || [];
+      const baseData = await apiJson(`/api/watchlists/${listId}/stocks`);
       const symbols = baseData.map(s => s.symbol);
       const quotes = await getQuotes(symbols);
       const enriched = baseData.map(item => {
@@ -49,8 +47,8 @@ const WatchlistDetailScreen = ({ route }) => {
   const fetchAllAvailableStocks = async () => {
     try {
 
-      const res = await axios.get(`${API_BASE_URL}/api/stocks`); 
-      setAllAvailableStocks(res.data);
+      const res = await apiJson('/api/stocks'); 
+      setAllAvailableStocks(res);
     } catch (err) {
       console.error('Tüm hisseler çekilemedi', err);
 
@@ -72,7 +70,13 @@ const WatchlistDetailScreen = ({ route }) => {
   const handleDelete = async (symbol) => {
     try {
 
-      await axios.delete(`${API_BASE_URL}/api/watchlists/${listId}/stocks/${symbol}`);
+      const response = await api(`/api/watchlists/${listId}/stocks/${symbol}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || 'Silme işlemi başarısız');
+      }
 
       setStocks(currentStocks => currentStocks.filter(stock => stock.symbol !== symbol));
     } catch (err) {
@@ -86,8 +90,11 @@ const WatchlistDetailScreen = ({ route }) => {
 
     try {
 
-      await axios.post(`${API_BASE_URL}/api/watchlists/${listId}/stocks`, {
-        symbols: selectedSymbols,
+      await apiJson(`/api/watchlists/${listId}/stocks`, {
+        method: 'POST',
+        body: {
+          symbols: selectedSymbols,
+        },
       });
 
       await fetchWatchlistStocks();

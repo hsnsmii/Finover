@@ -16,16 +16,13 @@ import {
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { PieChart } from 'react-native-gifted-charts';
-import axios from 'axios';
 
 import { getStockDetails, getPriceOnDate, getCurrentPrice } from '../../services/fmpApi';
-import { API_BASE_URL } from '../../services/config';
+import { api, apiJson } from '../../services/http';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-
-const API_URL = API_BASE_URL;
 
 const AppColors = {
   background: '#F4F6F8', cardBackground: '#FFFFFF', primaryText: '#2C3E50',
@@ -64,9 +61,9 @@ const PortfolioDetailScreen = () => {
     if (!isRefresh) setLoading(true); else setRefreshing(true);
     try {
 
-      const res = await axios.get(`${API_URL}/api/watchlists/${listId}/stocks`);
+      const res = await apiJson(`/api/watchlists/${listId}/stocks`);
 
-      if (!res.data || !Array.isArray(res.data) || res.data.length === 0) {
+      if (!res || !Array.isArray(res) || res.length === 0) {
         setPositions([]); setTotalValue(0); setTotalProfit(0); setPieChartData([]);
         if (!isRefresh) setLoading(false); else setRefreshing(false);
         return;
@@ -75,7 +72,7 @@ const PortfolioDetailScreen = () => {
       const currentUsdRate = await getCurrentPrice('USDTRY');
       const currentGoldUsd = await getCurrentPrice('XAUUSD');
 
-      const enrichedPositionsPromises = res.data.map(async (item) => {
+      const enrichedPositionsPromises = res.map(async (item) => {
         try {
           const stockData = await getStockDetails(item.symbol);
           if (!stockData || typeof stockData.price !== 'number') {
@@ -148,7 +145,8 @@ const PortfolioDetailScreen = () => {
         setPieChartData(chartData);
       }
     } catch (err) {
-      Alert.alert('Hata', `Pozisyonlar alınırken bir sorun oluştu: ${err.response?.data?.message || 'Lütfen internet bağlantınızı kontrol edin.'}`);
+      const message = err?.body?.message || err?.message || 'Lütfen internet bağlantınızı kontrol edin.';
+      Alert.alert('Hata', `Pozisyonlar alınırken bir sorun oluştu: ${message}`);
       setPositions([]); setPieChartData([]);
     } finally {
       if (!isRefresh) setLoading(false); else setRefreshing(false);
@@ -173,11 +171,18 @@ const PortfolioDetailScreen = () => {
          onPress: async () => {
            try {
 
-             await axios.delete(`${API_URL}/api/watchlists/${listId}/stocks/${symbol}`);
+             const response = await api(`/api/watchlists/${listId}/stocks/${symbol}`, {
+               method: 'DELETE',
+             });
+             if (!response.ok) {
+               const text = await response.text();
+               throw new Error(text || 'Sunucu hatası');
+             }
              Alert.alert('Başarılı', `${symbol} portföyden silindi.`);
              fetchPositions(true); 
            } catch (err) {
-             Alert.alert('Hata', `${symbol} silinirken bir sorun oluştu: ${err.response?.data?.message || 'Sunucu hatası'}`);
+             const message = err?.body?.message || err.message || 'Sunucu hatası';
+             Alert.alert('Hata', `${symbol} silinirken bir sorun oluştu: ${message}`);
            }
          },
        },]

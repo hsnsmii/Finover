@@ -58,6 +58,20 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 12,
   },
+  logoPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  logoInitial: {
+    fontWeight: '600',
+    color: '#374151',
+    fontSize: 16,
+  },
   symbol: {
     fontWeight: '700',
     fontSize: 16,

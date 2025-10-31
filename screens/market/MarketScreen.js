@@ -1,6 +1,6 @@
 // MarketScreen.js (Güncellenmiş renderItem için)
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, TextInput, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import { getSelectedStocks } from '../../services/fmpApi';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -41,17 +41,20 @@ const MarketScreen = () => {
         ? `+${changePercent.toFixed(2)}%`
         : `${changePercent.toFixed(2)}%`;
 
+    const initials =
+      item.companyName && item.companyName.length > 0
+        ? item.companyName.slice(0, 1).toUpperCase()
+        : item.symbol.slice(0, 1).toUpperCase();
+
     return (
       <TouchableOpacity
         style={styles.item}
         onPress={() => navigation.navigate('StockDetail', { symbol: item.symbol })}
         activeOpacity={0.7}
       >
-        <Image
-          source={{ uri: `https://financialmodelingprep.com/image-stock/${item.symbol}.png` }}
-          style={{ width: 40, height: 40, marginRight: 10, borderRadius: 4 }}
-          resizeMode="contain"
-        />
+        <View style={styles.logoPlaceholder}>
+          <Text style={styles.logoInitial}>{initials}</Text>
+        </View>
         <View style={styles.stockInfo}>
           <Text style={styles.symbol}>{item.symbol}</Text>
           <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">{item.companyName}</Text>

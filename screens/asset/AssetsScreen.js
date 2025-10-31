@@ -14,14 +14,11 @@ import {
   StatusBar,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import { getCurrentPrice } from '../../services/fmpApi';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useLocalization } from '../../services/LocalizationContext';
-import { API_BASE_URL } from '../../services/config';
-
-const API_URL = `${API_BASE_URL}/api`;
+import { apiJson } from '../../services/http';
 
 const COLORS = {
   primary: '#1A237E',         
@@ -49,10 +46,10 @@ const AssetsScreen = () => {
 
   const fetchPortfolioSummary = async (id) => {
     try {
-      const res = await axios.get(`${API_URL}/watchlists/${id}/stocks`);
+      const res = await apiJson(`/api/watchlists/${id}/stocks`);
       let cost = 0;
       let marketValue = 0;
-      for (const pos of res.data) {
+      for (const pos of res) {
         const qty = Number(pos.quantity);
         const buyPrice = Number(pos.price);
         cost += qty * buyPrice;
@@ -88,17 +85,17 @@ const AssetsScreen = () => {
         setLoading(false);
         return;
       }
-      const res = await axios.get(`${API_URL}/watchlists/${userId}?type=portfolio`);
+      const res = await apiJson(`/api/watchlists/${userId}?type=portfolio`);
 
       const portfoliosWithData = await Promise.all(
-        res.data.map(async (portfolio) => ({
+        res.map(async (portfolio) => ({
           ...portfolio,
           ...(await fetchPortfolioSummary(portfolio.id)),
         }))
       );
       setPortfolios(portfoliosWithData);
     } catch (err) {
-      console.error('Portföyler çekilemedi:', err.response ? err.response.data : err.message);
+      console.error('Portföyler çekilemedi:', err?.body || err.message);
       Alert.alert('Hata', 'Portföyler yüklenirken bir sorun oluştu.');
     } finally {
       setLoading(false);
@@ -116,16 +113,19 @@ const AssetsScreen = () => {
         Alert.alert('Hata', 'Kullanıcı ID bulunamadı. Lütfen tekrar giriş yapın.');
         return;
       }
-      await axios.post(`${API_URL}/watchlists`, {
-        name: newPortfolioName.trim(),
-        user_id: userId, 
-        type: 'portfolio',
+      await apiJson('/api/watchlists', {
+        method: 'POST',
+        body: {
+          name: newPortfolioName.trim(),
+          user_id: userId,
+          type: 'portfolio',
+        },
       });
       setNewPortfolioName('');
       setModalVisible(false);
       fetchPortfolios(); 
     } catch (err) {
-      console.error('Yeni portföy oluşturulamadı:', err.response ? err.response.data : err.message);
+      console.error('Yeni portföy oluşturulamadı:', err?.body || err.message);
       Alert.alert('Hata', 'Portföy oluşturulurken bir sorun oluştu.');
     }
   };

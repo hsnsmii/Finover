@@ -17,7 +17,8 @@ import { LineChart } from 'react-native-chart-kit';
 import { Feather } from '@expo/vector-icons';
 
 import { getStockDetails, getStockHistory, getIncomeStatement } from '../../services/fmpApi';
-import { API_BASE_URL, ML_BASE_URL } from '../../services/config';
+import { ML_BASE_URL } from '../../services/config';
+import { apiJson } from '../../services/http';
 import { getStyles, lightTheme, darkTheme } from "../../styles/StockDetailStyle";
 
 const screenWidth = Dimensions.get('window').width;
@@ -148,8 +149,7 @@ const StockDetailScreen = ({ route, navigation }) => {
         }
 
         if (userId) {
-          const response = await fetch(`${API_BASE_URL}/api/watchlists/${userId}`);
-          const userWatchlists = await response.json();
+          const userWatchlists = await apiJson(`/api/watchlists/${userId}`);
           setWatchlists(userWatchlists);
           const isStockInAnyWatchlist = userWatchlists.some(list =>
             list.stocks && list.stocks.some(s => s.symbol === symbol)
@@ -191,19 +191,14 @@ const StockDetailScreen = ({ route, navigation }) => {
 
   const handleAddToWatchlist = async (listId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/watchlists/${listId}/stocks`, {
+      await apiJson(`/api/watchlists/${listId}/stocks`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol }),
+        body: { symbol }
       });
-      if (response.ok) {
-        Alert.alert('Başarılı', `Hisse "${watchlists.find(l => l.id === listId).name}" listesine eklendi.`);
-        setIsBookmarked(true);
-        setModalVisible(false);
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Ekleme başarısız');
-      }
+      const targetList = watchlists.find((l) => l.id === listId);
+      Alert.alert('Başarılı', `Hisse "${targetList ? targetList.name : listId}" listesine eklendi.`);
+      setIsBookmarked(true);
+      setModalVisible(false);
     } catch (err) {
       console.error(err);
       Alert.alert('Hata', `Ekleme sırasında sorun oluştu: ${err.message}`);
@@ -221,12 +216,10 @@ const StockDetailScreen = ({ route, navigation }) => {
     }
     if (watchlists.length === 0) {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/watchlists`, {
+        const newList = await apiJson('/api/watchlists', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: 'Favorilerim', user_id: userId }),
+          body: { name: 'Favorilerim', user_id: userId }
         });
-        const newList = await response.json();
         setWatchlists([newList]);
         await handleAddToWatchlist(newList.id);
       } catch (error) {

@@ -2,7 +2,6 @@ import { Platform } from 'react-native';
 import {
   API_BASE_URL as ENV_API_BASE_URL,
   ML_BASE_URL as ENV_ML_BASE_URL,
-  FMP_API_KEY as ENV_FMP_API_KEY,
   SENTRY_DSN as ENV_SENTRY_DSN,
   SENTRY_ENVIRONMENT as ENV_SENTRY_ENVIRONMENT,
   SENTRY_RELEASE as ENV_SENTRY_RELEASE,
@@ -39,7 +38,6 @@ const defaultMlBase = Platform.select({
 
 export const API_BASE_URL = adaptLocalhostForPlatform(ENV_API_BASE_URL) || defaultApiBase;
 export const ML_BASE_URL = adaptLocalhostForPlatform(ENV_ML_BASE_URL) || defaultMlBase;
-export const FMP_API_KEY = ENV_FMP_API_KEY || 'demo';
 export const SENTRY_DSN = ENV_SENTRY_DSN || '';
 export const SENTRY_ENVIRONMENT = ENV_SENTRY_ENVIRONMENT || (__DEV__ ? 'development' : 'production');
 export const SENTRY_RELEASE = ENV_SENTRY_RELEASE || 'finover-mobile@dev';
